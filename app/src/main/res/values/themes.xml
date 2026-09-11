@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.SCUT" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:windowBackground">@color/scut_bg</item>
+        <item name="colorPrimary">@color/scut_surface</item>
+        <item name="colorAccent">@color/scut_accent</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.SCUT.Sharp</item>
+    </style>
+    <style name="ShapeAppearance.SCUT.Sharp" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">cut</item>
+        <item name="cornerSize">0dp</item>
+    </style>
+</resources>

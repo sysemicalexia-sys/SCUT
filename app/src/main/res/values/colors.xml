@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="scut_bg">#FFFFFF</color>
+    <color name="scut_surface">#FAFAFA</color>
+    <color name="scut_divider">#E7E7E7</color>
+    <color name="scut_text_primary">#1A1A1A</color>
+    <color name="scut_text_secondary">#767676</color>
+    <color name="scut_accent">#2A6BFF</color>
+</resources>
