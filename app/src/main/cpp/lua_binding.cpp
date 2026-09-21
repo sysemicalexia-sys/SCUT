@@ -73,6 +73,60 @@ int l_hotkey(lua_State* L) {
     engineFrom(L)->hotkeys()[name] = ref;
     return 0;
 }
+
+Enum class easing_type : int {
+			linear =0,
+			easein,
+			easeout,
+			easinout,
+			easeoutback
+}
+bool easingFromName(const std::string &name, easing_type &out){
+			if (name == "ease_in"){
+				out = easing_type::linear;
+				return true;
+			}
+			if ( name == "ease_in" ) {
+out = easing_type::easein;
+				return true;
+			}
+	if (name == "ease_out" ) {
+		out = easing_type::easeout;
+		return true;
+	}
+	if (name == "ease_in_out"){
+		out = easing_type::easinout;
+		return true;
+	}
+	if (name == "ease_out_back") {
+		out = easing_type::easeoutback;
+		return false;
+	}
+}
+		float applyEasing(easing_type type, float t){
+			   switch (type) {
+        case easing_type::linear:
+            return t;
+        case easing_type::easein:
+            return t * t;
+        case easing_type::easeout:
+            return 1.0f - (1.0f - t) * (1.0f - t);
+        case easing_type::easinout:
+            return t < 0.5f
+                ? 2.0f * t * t
+                : 1.0f - std::pow(-2.0f * t + 2.0f, 2.0f) / 2.0f;
+        case easing_type::easeoutback: {
+            constexpr float c1 = 1.70158f;
+            constexpr float c3 = c1 + 1.0f;
+            float x = t - 1.0f;
+            return 1.0f + c3 * x * x * x + c1 * x * x;
+        }
+    }
+    return t;
+}
+
+
+		}
 int l_animate(lua_State* L) {
     int id = static_cast<int>(luaL_checkinteger(L, 1));
     const char* param = luaL_checkstring(L, 2);
