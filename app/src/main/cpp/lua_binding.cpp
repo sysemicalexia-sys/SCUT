@@ -82,7 +82,7 @@ Enum class easing_type : int {
 			easeoutback
 }
 bool easingFromName(const std::string &name, easing_type &out){
-			if (name == "ease_in"){
+			if (name == "linear"){
 				out = easing_type::linear;
 				return true;
 			}
