@@ -15,9 +15,10 @@ static float frequency(size_t i, size_t n, int sample_rate) {
 }
 
 void fft(std::vector<Complex>& data, bool inverse) {
-    int n = static_cast<int>(data.size());
-    if (n == 0) return;
+    constexpr size_t kMaxSize = size_t{1} << 24;
+    if (data.empty() || data.size() > kMaxSize) return;
 
+    int n = static_cast<int>(data.size());
     if ((n & (n - 1)) != 0) {
         int p = 1;
         while (p < n) p <<= 1;
@@ -34,16 +35,15 @@ void fft(std::vector<Complex>& data, bool inverse) {
 
     for (int len = 2; len <= n; len <<= 1) {
         double angle = 2.0 * pi / len * (inverse ? -1.0 : 1.0);
-        Complex wlen(std::cos(angle), std::sin(angle));
 
         for (int i = 0; i < n; i += len) {
-            Complex w(1.0f, 0.0f);
             for (int j = 0; j < len / 2; j++) {
+                double a = angle * j;
+                Complex w(static_cast<float>(std::cos(a)), static_cast<float>(std::sin(a)));
                 Complex u = data[i + j];
                 Complex v = data[i + j + len / 2] * w;
                 data[i + j] = u + v;
                 data[i + j + len / 2] = u - v;
-                w *= wlen;
             }
         }
     }

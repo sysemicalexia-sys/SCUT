@@ -20,12 +20,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.scut.engine.ScriptManager
+import java.io.File
 
 @Composable
-fun ToolsPanel(scripts: ScriptManager, onRunScript: (source: String, name: String) -> Unit) {
+fun ToolsPanel(
+    scripts: ScriptManager,
+    onRunScript: (File) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var files by remember { mutableStateOf(scripts.listScripts()) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(vertical = 12.dp)) {
+    Column(modifier = modifier.fillMaxSize().padding(vertical = 12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -41,7 +46,7 @@ fun ToolsPanel(scripts: ScriptManager, onRunScript: (source: String, name: Strin
         LazyColumn {
             items(files) { file ->
                 TextButton(
-                    onClick = { onRunScript(file.readText(), file.name) },
+                    onClick = { onRunScript(file) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(file.name.removeSuffix(".lua"), modifier = Modifier.fillMaxWidth())

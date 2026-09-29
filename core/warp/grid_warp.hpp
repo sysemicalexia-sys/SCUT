@@ -10,7 +10,7 @@ struct Vec2 {
 
 class GridWarp {
 public:
-    void resize(int columns, int rows);
+    void resize(int columnCount, int rowCount);
     void reset();
 
     void nudge_point(int index, Vec2 delta, float strength = 1.0f);
@@ -20,6 +20,8 @@ public:
 
     int columns() const { return cols; }
     int rows_count() const { return rows; }
+
+    static constexpr int kMaxTextureSide = 4096;
 
 private:
     Vec2 sample_offset(float u, float v) const;

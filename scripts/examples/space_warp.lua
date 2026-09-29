@@ -1,5 +1,5 @@
 
-local grid = scut.get_node("warp_grid")
+local grid = scut.get_node("warp_grid") or scut.add_node("warp_grid")
 
 scut.grid_nudge(grid, 5, 4, 0.06, 0.00)
 scut.grid_nudge(grid, 3, 4, -0.06, 0.00)

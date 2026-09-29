@@ -33,6 +33,7 @@ fun WarpGridOverlay(
 
     var active by remember { mutableStateOf(-1) }
     val currentPoints by rememberUpdatedState(points)
+    val currentOnWarpChanged by rememberUpdatedState(onWarpChanged)
 
     // draw lambda below isn't @Composable, can't read the theme itself
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -46,7 +47,11 @@ fun WarpGridOverlay(
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragStart = { pos ->
-                        active = nearest(currentPoints, pos, size.width, size.height)
+                        active = if (size.width > 0 && size.height > 0) {
+                            nearest(currentPoints, pos, size.width.toFloat(), size.height.toFloat())
+                        } else {
+                            -1
+                        }
                     },
                     onDragEnd = {
                         active = -1
@@ -55,19 +60,25 @@ fun WarpGridOverlay(
                         active = -1
                     },
                     onDrag = { change, drag ->
-                        if (active >= 0) {
-                            val delta = Offset(drag.x / size.width, drag.y / size.height)
+                        if (active >= 0 && size.width > 0 && size.height > 0) {
+                            val dx = drag.x / size.width
+                            val dy = drag.y / size.height
 
                             val updated = currentPoints.mapIndexed { i, p ->
                                 if (i == active) {
-                                    p.copy(offset = p.offset + delta)
+                                    p.copy(
+                                        offset = Offset(
+                                            (p.offset.x + dx).coerceIn(-1f, 1f),
+                                            (p.offset.y + dy).coerceIn(-1f, 1f)
+                                        )
+                                    )
                                 } else {
                                     p
                                 }
                             }
 
                             points = updated
-                            onWarpChanged(updated.map { it.offset })
+                            currentOnWarpChanged(updated.map { it.offset })
                             change.consume()
                         }
                     }

@@ -5,18 +5,19 @@
 namespace scut::warp {
 
 static float clamp01(float v) {
-    return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+    if (!(v > 0.0f)) return 0.0f;
+    return v > 1.0f ? 1.0f : v;
 }
 
 static float lerp(float a, float b, float t) {
     return a + (b - a) * t;
 }
 
-void GridWarp::resize(int columns, int rows) {
-    cols = std::max(1, columns);
-    rows = std::max(1, rows);
-    base.resize(cols * rows);
-    offset.assign(cols * rows, Vec2{});
+void GridWarp::resize(int columnCount, int rowCount) {
+    cols = std::clamp(columnCount, 1, 256);
+    rows = std::clamp(rowCount, 1, 256);
+    base.assign(static_cast<size_t>(cols) * rows, Vec2{});
+    offset.assign(static_cast<size_t>(cols) * rows, Vec2{});
 
     for (int y = 0; y < rows; y++) {
         for (int x = 0; x < cols; x++) {
@@ -28,11 +29,12 @@ void GridWarp::resize(int columns, int rows) {
 }
 
 void GridWarp::reset() {
-    offset.assign(cols * rows, Vec2{});
+    offset.assign(static_cast<size_t>(cols) * rows, Vec2{});
 }
 
 void GridWarp::nudge_point(int index, Vec2 delta, float strength) {
     if (index < 0 || index >= static_cast<int>(base.size())) return;
+    if (!std::isfinite(delta.x) || !std::isfinite(delta.y) || !std::isfinite(strength)) return;
 
     Vec2 center = base[index];
     float r2 = radius * radius;
@@ -51,6 +53,7 @@ void GridWarp::nudge_point(int index, Vec2 delta, float strength) {
 
 void GridWarp::set_point(int index, Vec2 target, float strength) {
     if (index < 0 || index >= static_cast<int>(base.size())) return;
+    if (!std::isfinite(target.x) || !std::isfinite(target.y)) return;
 
     Vec2 current;
     current.x = base[index].x + offset[index].x;
@@ -104,8 +107,9 @@ Vec2 GridWarp::sample_offset(float u, float v) const {
 
 std::vector<unsigned char> GridWarp::encode_rgba(int width, int height) const {
     if (width <= 0 || height <= 0) return {};
+    if (width > kMaxTextureSide || height > kMaxTextureSide) return {};
 
-    std::vector<unsigned char> out(width * height * 4);
+    std::vector<unsigned char> out(static_cast<size_t>(width) * height * 4);
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -117,7 +121,7 @@ std::vector<unsigned char> GridWarp::encode_rgba(int width, int height) const {
             float rx = clamp01(o.x * 0.5f + 0.5f);
             float ry = clamp01(o.y * 0.5f + 0.5f);
 
-            int idx = (y * width + x) * 4;
+            size_t idx = (static_cast<size_t>(y) * width + x) * 4;
             out[idx + 0] = static_cast<unsigned char>(rx * 255.0f);
             out[idx + 1] = static_cast<unsigned char>(ry * 255.0f);
             out[idx + 2] = 0;

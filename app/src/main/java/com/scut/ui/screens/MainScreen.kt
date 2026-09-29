@@ -1,5 +1,6 @@
 package com.scut.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
@@ -10,12 +11,16 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,14 +31,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.scut.engine.NativeEngine
+import com.scut.engine.EngineViewModel
 import com.scut.engine.ScriptManager
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(engine: NativeEngine, scripts: ScriptManager) {
+fun MainScreen(viewModel: EngineViewModel, scripts: ScriptManager) {
     var toolsOpen by remember { mutableStateOf(false) }
     var projectsOpen by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf("Engine ready \u00b7 ${engine.nodeCount()} nodes") }
+    val scriptsPath = remember { scripts.directoryPath() }
+
+    BackHandler(enabled = toolsOpen || projectsOpen) {
+        toolsOpen = false
+        projectsOpen = false
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -44,15 +55,15 @@ fun MainScreen(engine: NativeEngine, scripts: ScriptManager) {
                         IconButton(onClick = { toolsOpen = true }) { Text("\u2630") }
                     },
                     actions = {
-                        IconButton(onClick = { projectsOpen = true }) { Text("Projects") }
+                        TextButton(onClick = { projectsOpen = true }) { Text("Projects") }
                     }
                 )
             }
         ) { padding ->
             HomeContent(
                 modifier = Modifier.padding(padding),
-                status = status,
-                scriptsPath = scripts.directoryPath()
+                status = viewModel.status,
+                scriptsPath = scriptsPath
             )
         }
 
@@ -84,11 +95,11 @@ fun MainScreen(engine: NativeEngine, scripts: ScriptManager) {
             ) {
                 ToolsPanel(
                     scripts = scripts,
-                    onRunScript = { source, name ->
-                        val ok = engine.runScript(source)
-                        status = "$name: ${if (ok) "ok" else "failed"} \u00b7 ${engine.nodeCount()} nodes"
+                    onRunScript = { file ->
+                        viewModel.runScript(file)
                         toolsOpen = false
-                    }
+                    },
+                    modifier = Modifier.safeDrawingPadding()
                 )
             }
         }
@@ -104,7 +115,7 @@ fun MainScreen(engine: NativeEngine, scripts: ScriptManager) {
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 3.dp
             ) {
-                ProjectsPanel()
+                ProjectsPanel(modifier = Modifier.safeDrawingPadding())
             }
         }
     }

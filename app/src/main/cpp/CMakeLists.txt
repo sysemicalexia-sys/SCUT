@@ -4,10 +4,8 @@ project(scut)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
 set(SCUT_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../..)
 
-# v5.4
 set(LUA_DIR ${SCUT_ROOT}/third_party/lua)
 
 set(LUA_SOURCES
@@ -36,6 +34,9 @@ target_include_directories(scut PRIVATE
     ${SCUT_ROOT}
     ${LUA_DIR}
 )
+
+target_compile_options(scut PRIVATE -fvisibility=hidden)
+target_link_options(scut PRIVATE -Wl,-z,max-page-size=16384)
 
 find_library(log-lib log)
 find_library(GLESv3-lib GLESv3)
