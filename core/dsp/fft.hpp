@@ -2,7 +2,8 @@
 #include <vector>
 #include <complex>
 
-namespace scut::dsp {
+namespace scut {
+namespace dsp {
 
 using Complex = std::complex<float>;
 
@@ -12,4 +13,5 @@ void remove_band(std::vector<Complex>& spectrum, int sample_rate, float low_hz, 
 
 void keep_between(std::vector<Complex>& spectrum, int sample_rate, float low_hz, float high_hz);
 
+}
 }

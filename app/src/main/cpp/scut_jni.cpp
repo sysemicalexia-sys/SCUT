@@ -15,10 +15,9 @@ using scut::script::RunResult;
 
 namespace {
 
-// Handles handed to Kotlin are looked up here instead of being cast blindly,
-// so a stale or zero handle throws instead of crashing. shared_ptr keeps an
-// engine alive until any call still running on it returns. Leaked on purpose:
-// no static destructors at process exit.
+// handles from java get looked up here, not cast blindly, so a stale or zero handle throws instead of crashing
+// shared_ptr keeps an engine alive while a call is still running on it
+// leaked on purpose, no static destructors at exit
 std::mutex& registryMutex() {
     static auto* m = new std::mutex();
     return *m;
@@ -43,7 +42,7 @@ void throwJava(JNIEnv* env, const char* cls, const char* msg) {
     env->DeleteLocalRef(c);
 }
 
-// No C++ exception may cross the JNI boundary.
+// no c++ exception may cross into java
 template <typename Fn>
 auto guarded(JNIEnv* env, Fn&& fn) -> decltype(fn()) {
     using R = decltype(fn());
@@ -65,8 +64,7 @@ std::shared_ptr<LuaEngine> requireEngine(JNIEnv* env, jlong handle) {
     return engine;
 }
 
-// NewStringUTF aborts the VM (CheckJNI) on anything that is not valid
-// modified UTF-8, and Lua error text can contain arbitrary script bytes.
+// NewStringUTF kills the vm (checkjni) on bad modified utf-8, and lua error text can hold any bytes
 std::string toJavaSafeUtf8(const std::string& in) {
     constexpr size_t kMaxBytes = 512;
     auto cont = [&](size_t i) {
@@ -118,7 +116,7 @@ struct Utf8Chars {
     Utf8Chars& operator=(const Utf8Chars&) = delete;
 };
 
-}  // namespace
+}
 
 extern "C" {
 
@@ -147,7 +145,7 @@ Java_com_scut_engine_NativeEngine_nativeDestroyEngine(JNIEnv* env, jobject, jlon
     });
 }
 
-// Returns null on success, otherwise the error message.
+// null on success, else the error text
 JNIEXPORT jstring JNICALL
 Java_com_scut_engine_NativeEngine_nativeRunScript(JNIEnv* env, jobject, jlong handle, jbyteArray source) {
     return guarded(env, [&]() -> jstring {
@@ -241,4 +239,4 @@ Java_com_scut_engine_NativeEngine_nativeNodeCount(JNIEnv* env, jobject, jlong ha
     });
 }
 
-}  // extern "C"
+}

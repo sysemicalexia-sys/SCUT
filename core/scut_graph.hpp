@@ -18,7 +18,7 @@ enum class NodeType {
     Output
 };
 
-// Lua scripts refer to node types by name ("fft", "warp_grid", ...) rather than the C++ enum, so add_node/get_node need a mapping both ways.
+// lua refers to node types by name ("fft", "warp_grid", ...), so add_node and get_node need the mapping both ways
 inline const char* nodeTypeName(NodeType type) {
     switch (type) {
         case NodeType::Source:    return "source";
@@ -34,7 +34,7 @@ inline const char* nodeTypeName(NodeType type) {
     return "unknown";
 }
 
-// Returns false if `name` doesn't match a known type, leaving `out` untouched.
+// false if the name isn't a known type, out stays untouched
 inline bool nodeTypeFromName(const std::string& name, NodeType& out) {
     static const std::pair<const char*, NodeType> table[] = {
         {"source", NodeType::Source}, {"cut", NodeType::Cut},

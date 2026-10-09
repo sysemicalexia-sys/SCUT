@@ -11,7 +11,7 @@ for f in third_party/lua/*.c; do
     "$CC" -O2 -Ithird_party/lua -c "$f" -o "bin/lua/$(basename "$f" .c).o" || exit 1
 done
 
-"$CXX" -std=c++17 -O2 -Wall -Wextra -I. -Ithird_party/lua -Iapp/src/main/cpp \
+"$CXX" -std=c++11 -O2 -Wall -Wextra -I. -Ithird_party/lua -Iapp/src/main/cpp \
     core/dsp/fft.cpp \
     core/warp/grid_warp.cpp \
     app/src/main/cpp/lua_binding.cpp \

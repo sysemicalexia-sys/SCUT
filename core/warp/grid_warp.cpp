@@ -2,7 +2,16 @@
 #include <algorithm>
 #include <cmath>
 
-namespace scut::warp {
+namespace scut {
+namespace warp {
+
+static bool finiteFloat(float v) {
+    return v - v == 0.0f;
+}
+
+static int clampInt(int v, int lo, int hi) {
+    return v < lo ? lo : (v > hi ? hi : v);
+}
 
 static float clamp01(float v) {
     if (!(v > 0.0f)) return 0.0f;
@@ -14,8 +23,8 @@ static float lerp(float a, float b, float t) {
 }
 
 void GridWarp::resize(int columnCount, int rowCount) {
-    cols = std::clamp(columnCount, 1, 256);
-    rows = std::clamp(rowCount, 1, 256);
+    cols = clampInt(columnCount, 1, 256);
+    rows = clampInt(rowCount, 1, 256);
     base.assign(static_cast<size_t>(cols) * rows, Vec2{});
     offset.assign(static_cast<size_t>(cols) * rows, Vec2{});
 
@@ -34,7 +43,7 @@ void GridWarp::reset() {
 
 void GridWarp::nudge_point(int index, Vec2 delta, float strength) {
     if (index < 0 || index >= static_cast<int>(base.size())) return;
-    if (!std::isfinite(delta.x) || !std::isfinite(delta.y) || !std::isfinite(strength)) return;
+    if (!finiteFloat(delta.x) || !finiteFloat(delta.y) || !finiteFloat(strength)) return;
 
     Vec2 center = base[index];
     float r2 = radius * radius;
@@ -53,7 +62,7 @@ void GridWarp::nudge_point(int index, Vec2 delta, float strength) {
 
 void GridWarp::set_point(int index, Vec2 target, float strength) {
     if (index < 0 || index >= static_cast<int>(base.size())) return;
-    if (!std::isfinite(target.x) || !std::isfinite(target.y)) return;
+    if (!finiteFloat(target.x) || !finiteFloat(target.y)) return;
 
     Vec2 current;
     current.x = base[index].x + offset[index].x;
@@ -132,4 +141,5 @@ std::vector<unsigned char> GridWarp::encode_rgba(int width, int height) const {
     return out;
 }
 
+}
 }

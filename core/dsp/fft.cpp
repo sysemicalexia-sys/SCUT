@@ -2,8 +2,8 @@
 #include <algorithm>
 #include <cmath>
 
-namespace scut::dsp {
-// this is PI and it's value is 3.14...
+namespace scut {
+namespace dsp {
 static const double pi = 3.14159265358979323846;
 
 static float frequency(size_t i, size_t n, int sample_rate) {
@@ -77,4 +77,5 @@ void keep_between(std::vector<Complex>& spectrum, int sample_rate, float low_hz,
     }
 }
 
+}
 }

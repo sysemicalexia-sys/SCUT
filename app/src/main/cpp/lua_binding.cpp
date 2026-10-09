@@ -23,13 +23,13 @@ extern "C" {
 #define LOGI(...) (std::fprintf(stderr, "I/SCUT: " __VA_ARGS__), std::fputc('\n', stderr))
 #endif
 
-namespace scut::script {
+namespace scut {
+namespace script {
 
 namespace {
 
-// Lua reports errors with longjmp. So in every function Lua calls: no C++
-// object with a destructor may be alive when luaL_error / luaL_check* can
-// fire, and luaL_error is never called from inside a catch block.
+// lua errors are longjmps, so no object with a destructor can be alive where luaL_error or luaL_check* may fire
+// and never call luaL_error inside a catch
 
 constexpr int kSafeLibs = LUA_GLIBK | LUA_COLIBK | LUA_TABLIBK | LUA_STRLIBK |
                           LUA_MATHLIBK | LUA_UTF8LIBK;
@@ -63,11 +63,10 @@ LuaEngine* engineFrom(lua_State* L) {
     return static_cast<MemoryBudget*>(ud)->owner;
 }
 
-// Installed once on the main state and inherited by every coroutine, so a
-// coroutine kept from an earlier run can't spin unchecked later.
+// set once on the main state and coroutines inherit it, so an old coroutine can't spin forever later
 void deadlineHook(lua_State* L, lua_Debug*) {
     if (engineFrom(L)->deadlineExpired()) {
-        // pcall() can swallow this error, so keep firing on every instruction
+        // pcall can swallow this error, so fire on every instruction from now on
         lua_sethook(L, deadlineHook, LUA_MASKCOUNT, 1);
         luaL_error(L, "script exceeded its time budget");
     }
@@ -82,10 +81,14 @@ int checkInt(lua_State* L, int arg) {
     return static_cast<int>(v);
 }
 
+bool finiteNumber(double v) {
+    return v - v == 0.0;
+}
+
 double checkFinite(lua_State* L, int arg) {
-    constexpr double kLimit = 1e9;
+    const double limit = 1e9;
     double v = luaL_checknumber(L, arg);
-    luaL_argcheck(L, std::isfinite(v) && std::fabs(v) <= kLimit, arg, "number must be finite and within +-1e9");
+    luaL_argcheck(L, finiteNumber(v) && std::fabs(v) <= limit, arg, "number must be finite and within +-1e9");
     return v;
 }
 
@@ -179,8 +182,7 @@ int l_get_node(lua_State* L) {
     return 1;
 }
 
-// scut.hotkey("slide_in", function() ... end) - stores the closure in the
-// registry; triggerHotkey(name) pulls it back out later.
+// scut.hotkey("name", fn), keeps the function in the registry for triggerHotkey
 int l_hotkey(lua_State* L) {
     const char* name = luaL_checkstring(L, 1);
     luaL_checktype(L, 2, LUA_TFUNCTION);
@@ -254,9 +256,8 @@ bool easingFromName(const char* name, EasingFn& out) {
     return false;
 }
 
-// scut.animate(node, param, from, to, duration [, easing]) - queues an
-// interpolation, doesn't touch the node yet. LuaEngine::tick() advances it.
-// easing: "linear" (default), "ease_in", "ease_out", "ease_in_out", "ease_out_back".
+// scut.animate(node, param, from, to, duration [, easing]) only queues it, tick() runs it
+// easings: linear (default), ease_in, ease_out, ease_in_out, ease_out_back
 int l_animate(lua_State* L) {
     int id = checkInt(L, 1);
     const char* param = luaL_checkstring(L, 2);
@@ -294,7 +295,7 @@ int l_animate(lua_State* L) {
     return 0;
 }
 
-// scut.grid_nudge(grid, col, row, dx, dy) - col/row are 0-based grid coordinates
+// scut.grid_nudge(grid, col, row, dx, dy), col and row start at 0
 int l_grid_nudge(lua_State* L) {
     int nodeId = checkInt(L, 1);
     int col = checkInt(L, 2);
@@ -332,7 +333,7 @@ const luaL_Reg kFunctions[] = {
 int setupState(lua_State* L) {
     luaL_openselectedlibs(L, kSafeLibs, 0);
 
-    // load* would accept precompiled bytecode, which Lua does not verify
+    // load* would take precompiled bytecode, lua doesn't verify that
     for (const char* unsafe : {"dofile", "loadfile", "load"}) {
         lua_pushnil(L);
         lua_setglobal(L, unsafe);
@@ -362,7 +363,7 @@ struct StackReset {
     ~StackReset() { lua_settop(L, 0); }
 };
 
-}  // namespace
+}
 
 LuaEngine::LuaEngine() {
     budget_.limit = kMemoryLimitBytes;
@@ -379,7 +380,7 @@ LuaEngine::LuaEngine() {
         throw std::runtime_error("could not initialise Lua: " + msg);
     }
 
-    gridWarp_.resize(8, 8);  // matches WarpGridOverlay's default cols/rows
+    gridWarp_.resize(8, 8);
 }
 
 LuaEngine::~LuaEngine() {
@@ -404,7 +405,7 @@ RunResult LuaEngine::run(const std::string& source) {
 
     StackReset reset{L};
     arm();
-    // mode "t": text only, see setupState
+    // "t" means text only, see setupState
     int status = luaL_loadbufferx(L, source.data(), source.size(), "=script", "t");
     if (status == LUA_OK) status = lua_pcall(L, 0, 0, 0);
     disarm();
@@ -462,4 +463,5 @@ void LuaEngine::tick(float dt) {
     }
 }
 
-}  // namespace scut::script
+}
+}

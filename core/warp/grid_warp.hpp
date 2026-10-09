@@ -1,11 +1,15 @@
 #pragma once
 #include <vector>
 
-namespace scut::warp {
+namespace scut {
+namespace warp {
 
 struct Vec2 {
-    float x = 0.0f;
-    float y = 0.0f;
+    float x;
+    float y;
+
+    Vec2() : x(0.0f), y(0.0f) {}
+    Vec2(float px, float py) : x(px), y(py) {}
 };
 
 class GridWarp {
@@ -21,7 +25,7 @@ public:
     int columns() const { return cols; }
     int rows_count() const { return rows; }
 
-    static constexpr int kMaxTextureSide = 4096;
+    enum { kMaxTextureSide = 4096 };
 
 private:
     Vec2 sample_offset(float u, float v) const;
@@ -33,4 +37,5 @@ private:
     std::vector<Vec2> offset;
 };
 
+}
 }

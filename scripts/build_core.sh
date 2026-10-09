@@ -4,7 +4,7 @@ CXX="${CXX:-clang++}"
 command -v "$CXX" >/dev/null 2>&1 || CXX=g++
 
 mkdir -p bin
-"$CXX" -std=c++17 -O2 -Wall -Wextra -I. \
+"$CXX" -std=c++11 -O2 -Wall -Wextra -I. \
     core/dsp/fft.cpp \
     core/warp/grid_warp.cpp \
     tests/core_test.cpp \

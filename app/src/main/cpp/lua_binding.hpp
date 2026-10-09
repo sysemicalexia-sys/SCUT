@@ -11,7 +11,8 @@
 
 struct lua_State;
 
-namespace scut::script {
+namespace scut {
+namespace script {
 
 class LuaEngine;
 
@@ -36,16 +37,18 @@ struct MemoryBudget {
     LuaEngine* owner = nullptr;
 };
 
-// owns one lua_State plus the Graph/GridWarp it scripts. see scut_jni.cpp
+// one lua_State plus the graph and warp grid it scripts, see scut_jni.cpp
 class LuaEngine {
 public:
-    static constexpr size_t kMaxScriptBytes = 1u << 20;
-    static constexpr size_t kMemoryLimitBytes = 64u << 20;
-    static constexpr size_t kMaxNodes = 10000;
-    static constexpr size_t kMaxParamsPerNode = 256;
-    static constexpr size_t kMaxAnimations = 10000;
-    static constexpr size_t kMaxHotkeys = 256;
-    static constexpr int kScriptBudgetMs = 2000;
+    enum Limits {
+        kMaxScriptBytes = 1 << 20,
+        kMemoryLimitBytes = 64 << 20,
+        kMaxNodes = 10000,
+        kMaxParamsPerNode = 256,
+        kMaxAnimations = 10000,
+        kMaxHotkeys = 256,
+        kScriptBudgetMs = 2000
+    };
 
     LuaEngine();
     ~LuaEngine();
@@ -82,4 +85,5 @@ private:
     bool armed_ = false;
 };
 
-}  // namespace scut::script
+}
+}
