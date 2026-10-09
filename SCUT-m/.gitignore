@@ -1,0 +1,10 @@
+.gradle/
+.aide/
+build/
+bin/
+gen/
+local.properties
+app/src/main/libs/
+app/src/main/obj/
+*.apk
+*.aab
